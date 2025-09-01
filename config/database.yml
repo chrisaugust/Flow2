@@ -80,5 +80,6 @@ test:
 production:
   <<: *default
   database: flow2_api_production
-  username: flow2_api
+  username: <% ENV["FLOW2_API_DATABASE_USERNAME"] %>
   password: <%= ENV["FLOW2_API_DATABASE_PASSWORD"] %>
+  host: <%= ENV["FLOW2_API_DATABASE_HOST"] %>
