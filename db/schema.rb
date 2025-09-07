@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_29_162058) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_07_154837) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -79,7 +79,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_29_162058) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "month_code"
-    t.index ["month_code"], name: "index_monthly_reviews_on_month_code", unique: true
+    t.index ["user_id", "month_code"], name: "index_monthly_reviews_on_user_id_and_month_code", unique: true
     t.index ["user_id"], name: "index_monthly_reviews_on_user_id"
   end
 
