@@ -4,6 +4,9 @@ Rails.application.routes.draw do
 
   resources :users, only: [:show, :update]
 
+  post '/forgot_password', to: 'passwords#forgot'
+  post '/reset_password', to: 'passwords#reset'
+
   resources :categories
   resources :expenses
   resources :incomes

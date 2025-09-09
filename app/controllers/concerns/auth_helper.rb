@@ -5,14 +5,16 @@ module AuthHelper
 
   # Encode a JWT token with payload
   def encode_token(payload)
-    JWT.encode(payload, Rails.application.secrets.secret_key_base)
+    # Add expiration time
+    payload[:exp] = 24.hours.from_now.to_i
+    JWT.encode(payload, Rails.application.credentials.secret_key_base)
   end
 
   def decode_token(token)
     begin
       decoded = JWT.decode(token, Rails.application.secrets.secret_key_base)
       decoded.first # payload is first element
-    rescue JWT::DecodeError
+    rescue JWT::DecodeError, JWT::ExpiredSignature
       nil
     end
   end
@@ -35,11 +37,29 @@ module AuthHelper
     end
   end
 
+  # Helper to get current user without authorization check
+  def current_user
+    return @current_user if defined?(@current_user)
+    
+    header = request.headers['Authorization']
+    token = header.split(' ').last if header
+
+    if token
+      decoded = decode_token(token)
+      if decoded && decoded["user_id"]
+        @current_user = User.find_by(id: decoded["user_id"])
+      end
+    end
+    
+    @current_user
+  end
+
   # Format user response data to return in JSON
   def user_response(user)
     {
       id: user.id,
-      email: user.email
+      email: user.email,
+      migrated_to_devise: user.migrated_to_devise # Useful for debugging
     }
   end
 end
