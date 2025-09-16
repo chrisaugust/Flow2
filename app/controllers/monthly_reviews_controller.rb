@@ -29,6 +29,11 @@ class MonthlyReviewsController < ApplicationController
       render json: review, include: :monthly_category_reviews, status: :ok
     else
       review = MonthlyReviewBuilder.new(@current_user, date).build_review
+      unless review.persisted?
+        Rails.logger.debug ">>> Review validation errors: #{review.errors.full_messages}"
+        render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
+        return
+      end
       render json: review, include: :monthly_category_reviews, status: :created
     end
   end
