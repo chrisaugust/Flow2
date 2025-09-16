@@ -21,20 +21,34 @@ class MonthlyReviewsController < ApplicationController
     render json: review, include: [:monthly_category_reviews, :user]
   end
 
+  # def create
+  #   date = params[:month].present? ? Date.parse(params[:month]) : Date.today
+  #   month_code = date.beginning_of_month.strftime('%m%Y')
+  #   review = @current_user.monthly_reviews.find_or_initialize_by(month_code: month_code)
+  #   if review.persisted?
+  #     render json: review, include: :monthly_category_reviews, status: :ok
+  #   else
+  #     review = MonthlyReviewBuilder.new(@current_user, date).build_review
+  #     unless review.persisted?
+  #       Rails.logger.debug ">>> Review validation errors: #{review.errors.full_messages}"
+  #       render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
+  #       return
+  #     end
+  #     render json: review, include: :monthly_category_reviews, status: :created
+  #   end
+  # end
+
   def create
     date = params[:month].present? ? Date.parse(params[:month]) : Date.today
     month_code = date.beginning_of_month.strftime('%m%Y')
+
     review = @current_user.monthly_reviews.find_or_initialize_by(month_code: month_code)
+
     if review.persisted?
-      render json: review, include: :monthly_category_reviews, status: :ok
+      render json: MonthlyReviewSerializer.new(review).as_json, status: :ok
     else
       review = MonthlyReviewBuilder.new(@current_user, date).build_review
-      unless review.persisted?
-        Rails.logger.debug ">>> Review validation errors: #{review.errors.full_messages}"
-        render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
-        return
-      end
-      render json: review, include: :monthly_category_reviews, status: :created
+      render json: MonthlyReviewSerializer.new(review).as_json, status: :created
     end
   end
 
@@ -76,34 +90,39 @@ class MonthlyReviewsController < ApplicationController
   #   render json: review, include: [:monthly_category_reviews, :user]
   # end
 
+  # def by_month_code
+  #   date = Date.strptime(params[:month_code], "%m%Y")
+  #   month_code = date.beginning_of_month.strftime("%m%Y")
+
+  #   Rails.logger.debug ">>> Current user ID: #{@current_user.id}"
+  #   Rails.logger.debug ">>> Looking for month_code: #{month_code}"
+
+  #   review = @current_user.monthly_reviews.find_by(month_code: month_code)
+  #   if review
+  #     Rails.logger.debug ">>> Found existing review ID: #{review.id}"
+  #   else
+  #     Rails.logger.debug ">>> No review found for month_code, building new one..."
+  #     begin
+  #       review = MonthlyReviewBuilder.new(@current_user, date).build_review
+  #     rescue => e
+  #       Rails.logger.debug ">>> Builder failed: #{e.class} - #{e.message}"
+  #       render json: { error: e.message }, status: :unprocessable_content
+  #       return
+  #     end
+
+  #     unless review.persisted?
+  #       Rails.logger.debug ">>> MonthlyReviewBuilder validation errors: #{review.errors.full_messages}"
+  #       render json: { errors: review.errors.full_messages }, status: :unprocessable_content
+  #       return
+  #     end
+  #   end
+
+  #   render json: review, include: [:monthly_category_reviews, :user]
+  # end
+
   def by_month_code
-    date = Date.strptime(params[:month_code], "%m%Y")
-    month_code = date.beginning_of_month.strftime("%m%Y")
-
-    Rails.logger.debug ">>> Current user ID: #{@current_user.id}"
-    Rails.logger.debug ">>> Looking for month_code: #{month_code}"
-
-    review = @current_user.monthly_reviews.find_by(month_code: month_code)
-    if review
-      Rails.logger.debug ">>> Found existing review ID: #{review.id}"
-    else
-      Rails.logger.debug ">>> No review found for month_code, building new one..."
-      begin
-        review = MonthlyReviewBuilder.new(@current_user, date).build_review
-      rescue => e
-        Rails.logger.debug ">>> Builder failed: #{e.class} - #{e.message}"
-        render json: { error: e.message }, status: :unprocessable_content
-        return
-      end
-
-      unless review.persisted?
-        Rails.logger.debug ">>> MonthlyReviewBuilder validation errors: #{review.errors.full_messages}"
-        render json: { errors: review.errors.full_messages }, status: :unprocessable_content
-        return
-      end
-    end
-
-    render json: review, include: [:monthly_category_reviews, :user]
+    review = @current_user.monthly_reviews.find_by!(month_code: params[:month_code])
+    render json: MonthlyReviewSerializer.new(review).as_json
   end
 
   def update
