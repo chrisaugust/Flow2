@@ -65,6 +65,11 @@ class MonthlyReviewsController < ApplicationController
 
     unless review
       review = MonthlyReviewBuilder.new(@current_user, date).build_review
+      unless review.persisted?
+        Rails.logger.debug ">>> ByMonthCode build errors: #{review.errors.full_messages}"
+        render json: { errors: review.errors.full_messages }, status: :unprocessable_entity
+        return
+      end
     end
 
     render json: review, include: [:monthly_category_reviews, :user]
