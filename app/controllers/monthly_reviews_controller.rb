@@ -56,19 +56,49 @@ class MonthlyReviewsController < ApplicationController
     end
   end
 
+  # def by_month_code
+  #   date = Date.strptime(params[:month_code], "%m%Y")
+  #   month_code = date.beginning_of_month.strftime("%m%Y")
+
+  #   # find or build review
+  #   review = @current_user.monthly_reviews.find_by(month_code: month_code)
+
+  #   unless review
+  #     begin
+  #       review = MonthlyReviewBuilder.new(@current_user, date).build_review
+  #     rescue => e
+  #       Rails.logger.debug ">>> Builder failed: #{e.class} - #{e.message}"
+  #       render json: { error: e.message }, status: :unprocessable_entity
+  #       return
+  #     end
+  #   end
+
+  #   render json: review, include: [:monthly_category_reviews, :user]
+  # end
+
   def by_month_code
     date = Date.strptime(params[:month_code], "%m%Y")
     month_code = date.beginning_of_month.strftime("%m%Y")
 
-    # find or build review
-    review = @current_user.monthly_reviews.find_by(month_code: month_code)
+    Rails.logger.debug ">>> Current user ID: #{@current_user.id}"
+    Rails.logger.debug ">>> Looking for month_code: #{month_code}"
 
-    unless review
+    review = @current_user.monthly_reviews.find_by(month_code: month_code)
+    if review
+      Rails.logger.debug ">>> Found existing review ID: #{review.id}"
+    else
+      Rails.logger.debug ">>> No review found for month_code, building new one..."
       begin
         review = MonthlyReviewBuilder.new(@current_user, date).build_review
       rescue => e
         Rails.logger.debug ">>> Builder failed: #{e.class} - #{e.message}"
-        render json: { error: e.message }, status: :unprocessable_entity
+        render json: { error: e.message }, status: :unprocessable_content
+        return
+      end
+
+      unless review.persisted?
+        Rails.logger.debug ">>> MonthlyReviewBuilder validation errors: #{review.errors.full_messages}"
+        render json: { errors: review.errors.full_messages }, status: :unprocessable_content
         return
       end
     end
