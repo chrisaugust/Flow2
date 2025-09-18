@@ -6,6 +6,7 @@ Rails.application.routes.draw do
 
   post '/forgot_password', to: 'passwords#forgot'
   post '/reset_password', to: 'passwords#reset'
+  patch '/change_password', to: 'passwords#change'
 
   resources :categories
   resources :expenses

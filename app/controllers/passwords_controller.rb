@@ -2,6 +2,25 @@ class PasswordsController < ApplicationController
   include AuthHelper
   skip_before_action :authorized_user, only: [:forgot, :reset]
 
+  def change
+    if current_user.valid_password?(params[:current_password])
+      current_user.password = params[:new_password]
+      current_user.password_confirmation = params[:password_confirmation]
+      
+      if current_user.save
+        render json: { message: 'Password changed successfully' }, status: :ok
+      else
+        render json: { 
+          errors: current_user.errors.full_messages 
+        }, status: :unprocessable_entity
+      end
+    else
+      render json: { 
+        errors: ['Current password is incorrect'] 
+      }, status: :unauthorized
+    end
+  end
+
   # POST /forgot_password
   def forgot
     user = User.find_by(email: params[:email])
@@ -20,7 +39,9 @@ class PasswordsController < ApplicationController
       user.save(validate: false)
       
       # Send reset email with raw_token
-      # PasswordMailer.reset_instructions(user, raw_token).deliver_later
+      PasswordMailer.reset_instructions(user, raw_token).deliver_now
+
+      Rails.logger.info "Password reset email sent to #{user.email} with token #{raw_token}"
       
       render json: { 
         message: 'Password reset instructions sent to your email' 
@@ -38,7 +59,7 @@ class PasswordsController < ApplicationController
     hashed_token = Devise.token_generator.digest(User, :reset_password_token, params[:token])
     user = User.find_by(reset_password_token: hashed_token)
     
-    if user && user.reset_password_sent_at > 2.hours.ago
+    if user && user.reset_password_sent_at > 20.minutes.ago
       user.password = params[:password]
       user.password_confirmation = params[:password_confirmation]
       user.reset_password_token = nil

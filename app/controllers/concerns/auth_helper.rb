@@ -12,7 +12,7 @@ module AuthHelper
 
   def decode_token(token)
     begin
-      decoded = JWT.decode(token, Rails.application.secrets.secret_key_base)
+      decoded = JWT.decode(token, Rails.application.credentials.secret_key_base)
       decoded.first # payload is first element
     rescue JWT::DecodeError, JWT::ExpiredSignature
       nil
