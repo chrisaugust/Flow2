@@ -3,7 +3,8 @@ class PasswordMailer < ApplicationMailer
 
   def reset_instructions(user, token)
     @user = user
-    @reset_url = "http://localhost:5173/reset-password?token=#{token}" # Adjust port for your frontend
+    frontend_host = ENV.fetch('FRONTEND_URL')
+    @reset_url = "#{frontend_host}/reset-password?token=#{token}" # Adjust port for your frontend
     
     mail(
       to: @user.email,
