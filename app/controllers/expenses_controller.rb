@@ -5,6 +5,11 @@ class ExpensesController < ApplicationController
 
   def index
     expenses = @current_user.expenses.order(occurred_on: :desc)
+
+    if params[:month].present? && params[:year].present?
+      expenses = expenses.where("extract(month from occurred_on) = ? AND extract(year from occurred_on) = ?",
+                              params[:month].to_i, params[:year].to_i)
+    end
     render json: expenses
   end
 
