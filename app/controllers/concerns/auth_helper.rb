@@ -6,7 +6,7 @@ module AuthHelper
   # Encode a JWT token with payload
   def encode_token(payload)
     # Add expiration time
-    payload[:exp] = 24.hours.from_now.to_i
+    payload[:exp] = 7.days.from_now.to_i
     JWT.encode(payload, Rails.application.credentials.secret_key_base)
   end
 
