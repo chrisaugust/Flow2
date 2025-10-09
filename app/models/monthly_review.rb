@@ -9,7 +9,7 @@ class MonthlyReview < ApplicationRecord
   private
 
   def set_month_code
-    self.month_code ||= "#{month.start.strftime('%m%Y')}" if month_start
+    self.month_code ||= month_start.strftime('%m%Y') if month_start.present?
   end
 end
 

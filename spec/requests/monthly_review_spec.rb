@@ -242,10 +242,11 @@ RSpec.describe "MonthlyReviews API", type: :request do
 
     context "with invalid data" do
       it "returns unprocessable entity" do
+        errors = ActiveModel::Errors.new(MonthlyReview.new)
+        errors.add(:notes, "Error message")
+
         allow_any_instance_of(MonthlyReview).to receive(:update).and_return(false)
-        allow_any_instance_of(MonthlyReview).to receive(:errors).and_return(
-          double(full_messages: ["Error message"])
-        )
+        allow_any_instance_of(MonthlyReview).to receive(:errors).and_return(errors)
 
         patch "/monthly_reviews/#{review.id}",
               params: { monthly_review: { notes: "test" } }.to_json,
