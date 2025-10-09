@@ -59,7 +59,6 @@ module AuthHelper
     {
       id: user.id,
       email: user.email,
-      migrated_to_devise: user.migrated_to_devise, # Useful for debugging
       hourly_wage: user.hourly_wage || 0
     }
   end

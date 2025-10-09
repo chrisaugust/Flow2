@@ -25,13 +25,7 @@ class PasswordsController < ApplicationController
   def forgot
     user = User.find_by(email: params[:email])
     
-    if user
-      # Ensure user is migrated before sending reset
-      unless user.migrated_to_devise?
-        temp_password = SecureRandom.hex(16)
-        user.migrate_to_devise!(temp_password)
-      end
-      
+    if user      
       # Generate reset token
       raw_token, hashed_token = Devise.token_generator.generate(User, :reset_password_token)
       user.reset_password_token = hashed_token
